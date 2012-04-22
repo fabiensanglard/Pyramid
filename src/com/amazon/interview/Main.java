@@ -1,24 +1,151 @@
 package com.amazon.interview;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import com.sun.tools.javac.util.Pair;
 
+
 public class Main {
 
-	LinkedList<Pair<Integer,Integer>> parameterList ;
+	private static class Human {
+
+		//This is used when building pyramid. The base human has previous set to NULL.
+		public Human previous;
+		public int weight;
+		public int strength;
+		
+		public Human(int weight, int strength){
+			this.weight   =   weight;
+			this.strength = strength;
+		}
+		
+		public int size(){
+			Human cursor = this;
+			int count = 0;
+			
+			while(cursor != null){
+				count++;
+				cursor = cursor.previous;
+			}
+			  	
+			return count;	
+		}
+	}
 	
 	
+	// Perform a linear search in order to find the base. Will also remove element from the list.
+	// The heuristic to elect a base for now is to find the heaviest and strongest individual
+	private static Human findBaseAndRemove(LinkedList<Human> list)
+	{
+	  //Will hold what we found
+        Human keeper = list.peek() ; //Will return null if the list is empty contrary to first()
+		
+        
+	    Iterator<Human> iterator = list.iterator();
+		//Linear search part
+	    while(iterator.hasNext()){
+	    	
+	    	Human prospect = iterator.next();
+	    	
+	    	
+	    	if (prospect.weight > keeper.weight){
+	    		if (prospect.strength > keeper.strength){
+	    			keeper = prospect;
+	    		}
+	    	}
+	    	
+	    }
+	    
+	    //Don't forget to remove the element from the list
+	    if (keeper != null)
+	    	list.remove(keeper);
+	    	
+		
+	    return keeper;
+	}
+	
+	//Will never be called with either parameter set to null
+	private static boolean canAddToPyramid(Human pyramid, Human prospect) {
+		
+		Human cursor = pyramid;
+		int accumulatedWeight = prospect.weight;
+		
+		while(cursor != null){
+			
+			if (accumulatedWeight > cursor.strength)
+				return false;
+			
+			accumulatedWeight += cursor.weight;
+			cursor = cursor.previous;
+		}
+		
+		return true;
+	}
+	
+	
+	private static int findBestPyramid_r(Human pyramid, LinkedList<Human> candidates) {
+		
+		int maxSize = pyramid.size();
+		
+		//We have exhausted the candidates, nothing to recurse on
+		if (candidates == null || candidates.size() == 0){
+			return maxSize;
+		}
+		
+		Human headList = candidates.peek();
+		
+		do{
+			
+		    Human prospect = candidates.poll();	
+		    
+			if (canAddToPyramid(pyramid,prospect)){
+				
+				prospect.previous = pyramid;
+				
+				int size = findBestPyramid_r(prospect,candidates);
+				
+				if (size>maxSize)
+					maxSize = size;
+			}
+			
+			candidates.addLast(prospect);
+			
+		} while(candidates.peek() != headList);
+		
+		return maxSize;
+	}
+	
+	
+	
+
+
+
+
 	public static void main(String[] argv){
 		
-		int highestPyramidCount = 1;
+		
+		
+		LinkedList<Human> listOfHumans = new LinkedList<Human>();
+		listOfHumans.add(new Human(3,4));
+		listOfHumans.add(new Human(2,2));
+		listOfHumans.add(new Human(7,6));
+		listOfHumans.add(new Human(4,5));
 		
 	    //Read set of inputs.
+
+		//Find the base, set previous to null to mark that it is the root of the pyramid
+		Human pyramid = findBaseAndRemove(listOfHumans);
+		pyramid.previous = null;
 		
-		//Investigate
+		//Recurse
+		int highestPyramidCount = 0;
+		highestPyramidCount = findBestPyramid_r(pyramid,listOfHumans);
 		
 		//Profit
-		
 		System.out.println(highestPyramidCount);
 	}
+
+
+
 }
