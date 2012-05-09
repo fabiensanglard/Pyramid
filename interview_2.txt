@@ -1,0 +1,101 @@
+Can you see me?
+Yes !
+
+/*
+ *   -(6/3 + 4)    ->        (+)
+ *                        / \
+ *                       (\) 4
+ *                       / \
+ *                      6   3
+*/
+
+
+public abstract class Element{
+
+   protected Element elements[2];
+   
+   
+   public abstract int evaluate();
+}
+
+
+public class Operator extends Element{
+  
+   private Resolver resolver;
+  
+   public Operator(Resolver resolver){
+      this.resolver = resolver;
+   }
+  
+   public int evaluate(){
+   
+      return resolver.resolve(this);
+   }
+   
+}
+
+public class Operand extends Element{
+   
+    private int value;
+    
+    Operand(int value){
+       this.value = value;
+    }
+   
+    public int evaluate(){
+       return this.value;
+    }
+}
+
+
+interface Resolver{
+   protected int resolve(Element element);
+}
+
+public class Addition extends Resolver{
+    
+    protected int resolve(Element element){
+        
+        return element.elements[0].evaluate() + 
+               element.elements[1].evaluate()  ;
+    }
+}
+
+
+public class Negator extends Resolver{
+ 
+ protected int resolve(Element element){
+     Element toOperateOn = element.getLeftElement();
+     
+     if (toOperateOn == null)
+        toOperateOn = element.getRightElement();
+        
+     return -toOperateOn.evaluate();   
+ }
+ 
+}
+
+/*
+ *   6/3 + 4    ->        (+)
+ *                        / \
+ *                       (\) 4
+ *                       / \
+ *                      6   3
+*/
+public static main (String args[]){
+  
+  
+  Element div1 = new Operator(new Divison())
+  div1.setLeftChild(new Operand(6));
+  div1.setRightChild(new Operand(3));
+  
+  Element add1 = new Operator(new Addition());
+  add1.setLeftChild(div1);
+  add1.setRightChild(new Operand(4));
+  
+  add1.evaluate();
+  
+  Element negat = new Operator(new Negator());
+  negat.setLeftChild(add1);
+  
+}
